@@ -1,0 +1,6 @@
+@ShopeeVoucherAPI_HostAddress = http://localhost:5264
+
+GET {{ShopeeVoucherAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
