@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopeeVoucherAPI", "ShopeeVoucherAPI\ShopeeVoucherAPI.csproj", "{B8846949-0711-4A9C-A932-DBF9544029AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopeeVoucherWeb", "ShopeeVoucherWeb\ShopeeVoucherWeb.csproj", "{758AB67E-5D85-467D-8983-60BBC0FB388A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{B8846949-0711-4A9C-A932-DBF9544029AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8846949-0711-4A9C-A932-DBF9544029AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8846949-0711-4A9C-A932-DBF9544029AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{758AB67E-5D85-467D-8983-60BBC0FB388A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{758AB67E-5D85-467D-8983-60BBC0FB388A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{758AB67E-5D85-467D-8983-60BBC0FB388A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{758AB67E-5D85-467D-8983-60BBC0FB388A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

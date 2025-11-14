@@ -1,7 +1,44 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherweb\\views\\voucher\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|solutionrelative:shopeevoucherweb\\views\\voucher\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherweb\\controllers\\vouchercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|solutionrelative:shopeevoucherweb\\controllers\\vouchercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|solutionrelative:shopeevoucherapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherapi\\controllers\\vouchercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|solutionrelative:shopeevoucherapi\\controllers\\vouchercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherweb\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|solutionrelative:shopeevoucherweb\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherapi\\shopeevoucherapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|solutionrelative:shopeevoucherapi\\shopeevoucherapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|solutionrelative:shopeevoucherapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherapi\\shopeevoucherapi.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{B8846949-0711-4A9C-A932-DBF9544029AB}|ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj|solutionrelative:shopeevoucherapi\\shopeevoucherapi.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|d:\\fulearning\\fall25\\prn232\\shoppe-voucher\\shopeevoucher_prn232_project\\shopeevoucherweb\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{758AB67E-5D85-467D-8983-60BBC0FB388A}|ShopeeVoucherWeb\\ShopeeVoucherWeb.csproj|solutionrelative:shopeevoucherweb\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +46,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 73,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 200,
           "Children": [
             {
               "$type": "Bookmark",
@@ -349,10 +386,6 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{0504ff91-9d61-11d0-a794-00a0c9110051}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:1:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
             },
             {
@@ -498,10 +531,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{99a11807-c5db-4877-ad35-09b56a044012}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{9a7cebbb-dc5c-4986-bc49-962da46aa506}"
             },
             {
               "$type": "Bookmark",
@@ -693,10 +722,6 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{c93a910a-0fa6-4307-93a4-f2bd61ec7828}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:130:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
             },
             {
@@ -822,6 +847,118 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\Views\\Voucher\\Index.cshtml",
+              "RelativeDocumentMoniker": "ShopeeVoucherWeb\\Views\\Voucher\\Index.cshtml",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\Views\\Voucher\\Index.cshtml",
+              "RelativeToolTip": "ShopeeVoucherWeb\\Views\\Voucher\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-11-14T05:57:50.05Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "VoucherController.cs",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\Controllers\\VoucherController.cs",
+              "RelativeDocumentMoniker": "ShopeeVoucherWeb\\Controllers\\VoucherController.cs",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\Controllers\\VoucherController.cs",
+              "RelativeToolTip": "ShopeeVoucherWeb\\Controllers\\VoucherController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T05:57:40.024Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "ShopeeVoucherAPI\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\Properties\\launchSettings.json",
+              "RelativeToolTip": "ShopeeVoucherAPI\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAwBAAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-11-14T05:55:25.613Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ShopeeVoucherAPI",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "RelativeDocumentMoniker": "ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "RelativeToolTip": "ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-11-14T05:55:23.866Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\appsettings.json",
+              "RelativeDocumentMoniker": "ShopeeVoucherWeb\\appsettings.json",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\appsettings.json",
+              "RelativeToolTip": "ShopeeVoucherWeb\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-11-14T05:55:16.635Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\Program.cs",
+              "RelativeDocumentMoniker": "ShopeeVoucherWeb\\Program.cs",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherWeb\\Program.cs",
+              "RelativeToolTip": "ShopeeVoucherWeb\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T05:55:14.035Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "VoucherController.cs",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\Controllers\\VoucherController.cs",
+              "RelativeDocumentMoniker": "ShopeeVoucherAPI\\Controllers\\VoucherController.cs",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\Controllers\\VoucherController.cs",
+              "RelativeToolTip": "ShopeeVoucherAPI\\Controllers\\VoucherController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T05:50:57.67Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ShopeeVoucherAPI.csproj",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "RelativeDocumentMoniker": "ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "RelativeToolTip": "ShopeeVoucherAPI\\ShopeeVoucherAPI.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-11-14T05:43:08.408Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\Program.cs",
+              "RelativeDocumentMoniker": "ShopeeVoucherAPI\\Program.cs",
+              "ToolTip": "D:\\FULearning\\FALL25\\PRN232\\shoppe-voucher\\ShopeeVoucher_PRN232_Project\\ShopeeVoucherAPI\\Program.cs",
+              "RelativeToolTip": "ShopeeVoucherAPI\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T05:43:03.937Z",
+              "EditorCaption": ""
             }
           ]
         },
