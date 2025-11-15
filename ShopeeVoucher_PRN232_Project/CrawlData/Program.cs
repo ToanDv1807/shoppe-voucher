@@ -1,551 +1,477 @@
-﻿using PuppeteerSharp;
-using CrawlData.Data;
-using CrawlData.Data.Models;
+﻿﻿using System.Web;
+using PuppeteerSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using CrawlData.Models;
 
 namespace CrawlData
 {
     internal static class Program
     {
-        public static async Task Main()
+        static async Task Main(string[] args)
         {
-            // Setup configuration
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-
-            // Setup dependency injection
-            var serviceProvider = new ServiceCollection()
-                .AddDbContext<AppDbContext>(options =>
-                    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
-                .BuildServiceProvider();
-
-            const string testUrl = "https://bloggiamgia.vn/shopee";
-            
-            Console.WriteLine("Downloading Chromium browser (if not already installed)...");
+            Console.WriteLine("=== Shopee Coupon Crawler Started ===");
             
             try
             {
-                // Download Chromium browser
+                // Load configuration
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+                // Setup database context
+                var optionsBuilder = new DbContextOptionsBuilder<CouponDbContext>();
+                optionsBuilder.UseSqlServer(connectionString);
+
+                using var dbContext = new CouponDbContext(optionsBuilder.Options);
+
+                // Ensure database is created
+                await dbContext.Database.EnsureCreatedAsync();
+                Console.WriteLine("Database connection established.");
+
+                // Download browser if not exists
+                Console.WriteLine("Checking browser installation...");
                 var browserFetcher = new BrowserFetcher();
                 await browserFetcher.DownloadAsync();
-                
-                Console.WriteLine("Launching browser...");
-                
+                Console.WriteLine("Browser ready.");
+
                 // Launch browser
+                Console.WriteLine("Launching browser...");
                 await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     Headless = true,
-                    Args = new[] { 
-                        "--no-sandbox", 
-                        "--disable-setuid-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu"
-                    }
+                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
                 });
-                
-                // Create new page
+
                 await using var page = await browser.NewPageAsync();
                 
                 // Set user agent to avoid blocking
                 await page.SetUserAgentAsync("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
                 
-                Console.WriteLine($"Navigating to {testUrl}...");
-                
-                // Navigate to URL with shorter timeout and simpler wait strategy
-                await page.GoToAsync(testUrl, new NavigationOptions
+                // Navigate to the website
+                Console.WriteLine("Navigating to https://bloggiamgia.vn/shopee...");
+                await page.GoToAsync("https://bloggiamgia.vn/shopee", new NavigationOptions
                 {
                     WaitUntil = new[] { WaitUntilNavigation.DOMContentLoaded },
                     Timeout = 15000 // 15 seconds timeout
                 });
-                
-                // Wait a bit for dynamic content to load
-                await Task.Delay(3000);
-                
-                // Scroll down to trigger lazy loading
-                Console.WriteLine("Scrolling to load dynamic content...");
+
+                Console.WriteLine("Page loaded. Waiting for content...");
+                await Task.Delay(3000); // Wait for dynamic content to load
+
+                // Scroll to load dynamic content
+                Console.WriteLine("Scrolling to trigger lazy loading...");
                 await page.EvaluateExpressionAsync("window.scrollTo(0, document.body.scrollHeight / 2)");
                 await Task.Delay(1000);
                 await page.EvaluateExpressionAsync("window.scrollTo(0, document.body.scrollHeight)");
                 await Task.Delay(2000);
-                
-                // Click "Xem thêm Voucher" button to load more coupons
-                Console.WriteLine("Looking for 'Load More' button...");
-                try
-                {
-                    var loadMoreButton = await page.QuerySelectorAsync("div:has(svg) >> text=Xem thêm Voucher");
-                    if (loadMoreButton == null)
-                    {
-                        // Try alternative selectors
-                        var buttons = await page.QuerySelectorAllAsync("div");
-                        foreach (var btn in buttons)
-                        {
-                            var text = await page.EvaluateFunctionAsync<string>("el => el.textContent", btn);
-                            if (text != null && text.Contains("Xem thêm Voucher"))
-                            {
-                                loadMoreButton = btn;
-                                break;
-                            }
-                        }
-                    }
+
+                // Click "See more Voucher" button to load all coupons
+                Console.WriteLine("Clicking 'See more Voucher' to load all coupons...");
+                await ClickSeeMoreButton(page);
+
+                // Extract coupon data
+                Console.WriteLine("Extracting coupon data...");
+                var coupons = await page.EvaluateFunctionAsync<List<CouponData>>(@"() => {
+                    const coupons = [];
+                    const couponElements = document.querySelectorAll('[data-v-56fdd109].flex.flex-col.justify-between.cursor-pointer');
                     
-                    if (loadMoreButton != null)
-                    {
-                        Console.WriteLine("Clicking 'Xem thêm Voucher' button...");
-                        await loadMoreButton.ClickAsync();
-                        await Task.Delay(3000); // Wait for more coupons to load
-                        Console.WriteLine("More coupons loaded!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("'Xem thêm Voucher' button not found, proceeding with current coupons.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Could not click load more button: {ex.Message}");
-                }
-                
-                Console.WriteLine("Page loaded. Checking for data...");
-                
-                // Find coupon/voucher elements based on the provided HTML structure
-                var possibleSelectors = new[]
-                {
-                    ".ticket-wrap",  // Main coupon container from the HTML
-                    ".ticket",
-                    "[class*='ticket']",
-                    ".item-voucher",
-                    ".voucher-item",
-                    ".deal-item",
-                    ".coupon-item"
-                };
-                
-                bool canCrawl = false;
-                string foundSelector = "";
-                int elementCount = 0;
-                
-                foreach (var selector in possibleSelectors)
-                {
-                    var elements = await page.QuerySelectorAllAsync(selector);
-                    
-                    // Filter out hidden/modal elements
-                    if (elements != null && elements.Length > 0)
-                    {
-                        // Check if elements are visible (not modals/dialogs)
-                        var visibleCount = 0;
-                        foreach (var el in elements)
-                        {
-                            var isVisible = await page.EvaluateFunctionAsync<bool>(
-                                @"el => {
-                                    const style = window.getComputedStyle(el);
-                                    const rect = el.getBoundingClientRect();
-                                    return style.display !== 'none' && 
-                                           style.visibility !== 'hidden' && 
-                                           rect.width > 0 && 
-                                           rect.height > 0 &&
-                                           !el.closest('.el-dialog__wrapper, .modal, [style*=""display:none""], [style*=""display: none""]');
-                                }", el);
-                            if (isVisible) visibleCount++;
-                        }
-                        
-                        if (visibleCount > 0)
-                        {
-                            canCrawl = true;
-                            foundSelector = selector;
-                            elementCount = visibleCount;
-                            break;
-                        }
-                    }
-                }
-                
-                // Get page title and content length for additional info
-                var title = await page.GetTitleAsync();
-                var content = await page.GetContentAsync();
-                
-                Console.WriteLine($"\n=== Crawl Test Results ===");
-                Console.WriteLine($"URL: {testUrl}");
-                Console.WriteLine($"Page Title: {title}");
-                Console.WriteLine($"Page Content Length: {content.Length} characters");
-                
-                if (canCrawl)
-                {
-                    Console.WriteLine($"Status: Can crawl data ✓");
-                    Console.WriteLine($"Found {elementCount} visible coupon elements using selector: '{foundSelector}'");
-                    
-                    // Extract coupon data from visible elements
-                    Console.WriteLine($"\n=== Extracting Coupon Data ===");
-                    var allElements = await page.QuerySelectorAllAsync(foundSelector);
-                    var visibleElements = new List<IElementHandle>();
-                    
-                    foreach (var el in allElements)
-                    {
-                        var isVisible = await page.EvaluateFunctionAsync<bool>(
-                            @"el => {
-                                const style = window.getComputedStyle(el);
-                                const rect = el.getBoundingClientRect();
-                                return style.display !== 'none' && 
-                                       style.visibility !== 'hidden' && 
-                                       rect.width > 0 && 
-                                       rect.height > 0 &&
-                                       !el.closest('.el-dialog__wrapper, .modal, [style*=""display:none""], [style*=""display: none""]');
-                            }", el);
-                        if (isVisible) visibleElements.Add(el);
-                    }
-                    
-                    int sampleCount = Math.Min(10, visibleElements.Count);
-                    Console.WriteLine($"Extracting {sampleCount} coupon(s)...\n");
-                    
-                    var extractedCoupons = new List<CouponData>();
-                    
-                    for (int i = 0; i < sampleCount; i++)
-                    {
-                        var element = visibleElements[i];
-                        
-                        // Extract coupon data based on the HTML structure
-                        var coupon = await page.EvaluateFunctionAsync<CouponData>(@"el => {
-                            const getText = (sel) => {
-                                const elem = el.querySelector(sel);
-                                return elem ? elem.textContent.trim() : '';
-                            };
-                            const getAttr = (sel, attr) => {
-                                const elem = el.querySelector(sel);
-                                return elem ? elem.getAttribute(attr) : '';
-                            };
+                    couponElements.forEach(element => {
+                        try {
+                            const coupon = {};
                             
-                            // Extract supplier name
-                            const supplierElem = el.querySelector('.logo-supplier .font-semibold, .mini-title-supplier span');
-                            const supplier = supplierElem ? supplierElem.textContent.trim() : 'Unknown';
+                            // Extract supplier
+                            const supplierElement = element.querySelector('.mini-title-supplier span');
+                            coupon.supplier = supplierElement ? supplierElement.textContent.trim() : null;
                             
-                            // Extract supplier logo
-                            const supplierLogo = getAttr('.logo-supplier img, .mini-title-supplier img', 'src');
+                            // Extract discount and determine type
+                            const discountElement = element.querySelector('.font-bold.text-lg span, .font-bold.text-2xl span');
+                            const discountText = discountElement ? discountElement.textContent.trim() : '';
                             
-                            // Extract discount percentage - look for the bold colored text
-                            const discountElem = el.querySelector('.font-bold[style*=""color""], .text-lg.font-bold, .text-2xl.font-bold');
-                            const discountPercent = discountElem ? discountElem.textContent.trim() : '';
-                            
-                            // Determine discount type: % = percent, K = money (1K = 1000)
-                            const isPercentDiscount = discountPercent.includes('%');
-                            const isMoneyDiscount = discountPercent.includes('K') || discountPercent.includes('k');
-                            
-                            // Parse discount value
-                            let discountValue = null;
-                            if (isPercentDiscount) {
-                                const match = discountPercent.match(/(\d+(?:\.\d+)?)/);
-                                discountValue = match ? parseFloat(match[1]) : null;
-                            } else if (isMoneyDiscount) {
-                                const match = discountPercent.match(/(\d+(?:\.\d+)?)K/i);
-                                if (match) {
-                                    discountValue = parseFloat(match[1]) * 1000; // Convert K to actual value
-                                }
+                            if (discountText.includes('%')) {
+                                coupon.type = true; // percentage
+                                coupon.discount = parseFloat(discountText.replace('%', '').trim());
+                            } else if (discountText.includes('K')) {
+                                coupon.type = false; // fixed amount
+                                coupon.discount = parseFloat(discountText.replace('K', '').trim()) * 1000;
+                            } else {
+                                coupon.type = false;
+                                coupon.discount = parseFloat(discountText.replace(/[^0-9.]/g, ''));
                             }
                             
-                            // Extract coupon code (for money discounts)
-                            let couponCode = '';
-                            if (isMoneyDiscount) {
-                                // Look for code in various places
-                                const codeElem = el.querySelector('.code, .coupon-code, [class*=""code""]');
-                                if (codeElem) {
-                                    couponCode = codeElem.textContent.trim();
-                                } else {
-                                    // Try to find code in text content
-                                    const textContent = el.textContent;
-                                    const codeMatch = textContent.match(/(?:Mã|Code|MA):\s*([A-Z0-9]+)/i);
-                                    if (codeMatch) {
-                                        couponCode = codeMatch[1];
-                                    }
-                                }
+                            // Extract minimum value
+                            const minValueElement = element.querySelector('.text-xs.mb-1 .font-semibold');
+                            if (minValueElement) {
+                                const minValueText = minValueElement.textContent.trim();
+                                coupon.minValueApply = parseFloat(minValueText.replace(/[^0-9]/g, ''));
                             }
                             
-                            // Extract minimum order value - get the text after 'ĐH tối thiểu:'
-                            const minOrderContainer = Array.from(el.querySelectorAll('.text-xs.mb-1')).find(e => 
-                                e.textContent.includes('ĐH tối thiểu:'));
-                            let minimumOrder = '';
-                            if (minOrderContainer) {
-                                const fullText = minOrderContainer.textContent;
-                                const match = fullText.match(/ĐH tối thiểu:\s*(.+)/);
-                                minimumOrder = match ? match[1].trim() : '';
+                            // Extract available percentage
+                            const availableElement = element.querySelector('.text-xs.mb-1 span span.font-semibold');
+                            if (availableElement && availableElement.textContent.includes('%')) {
+                                coupon.available = parseFloat(availableElement.textContent.replace('%', '').trim());
                             }
                             
-                            // Extract expiry date - look in the expried-date div
-                            const expiryContainer = el.querySelector('.expried-date');
-                            let expiryDate = '';
-                            if (expiryContainer) {
-                                const spans = expiryContainer.querySelectorAll('span');
-                                if (spans.length > 1) {
-                                    expiryDate = spans[spans.length - 1].textContent.trim();
-                                }
-                            }
+                            // Extract description
+                            const descElement = element.querySelector('.italic.text-xs.text-left');
+                            coupon.description = descElement ? descElement.textContent.trim() : null;
                             
-                            // Extract note/description - look for italic text with note
-                            const noteElem = el.querySelector('.italic.text-xs.text-left');
-                            let note = noteElem ? noteElem.textContent.trim() : '';
-                            // Remove 'Xem chi tiết' from the end if present
-                            note = note.replace(/\s*Xem chi tiết\s*$/, '');
+                            // Extract expired date
+                            const dateElement = element.querySelector('.expried-date .text-left.italic');
+                            coupon.expiredDate = dateElement ? dateElement.textContent.trim() : null;
                             
-                            // Extract apply link (List áp dụng)
-                            const applyLink = getAttr('a.italic.underline[href*=""shopee""]', 'href');
+                            // Extract URL apply list
+                            const linkElement = element.querySelector('a[href*=""origin_link""]');
+                            coupon.urlApplyList = linkElement ? linkElement.getAttribute('href') : null;
                             
-                            // Extract banner link (Đến Banner button)
-                            const bannerBtn = el.querySelector('a.bg-\\[\\#FF9900\\]');
-                            const bannerLink = bannerBtn ? bannerBtn.getAttribute('href') : applyLink;
-                            
-                            // Extract category
-                            const category = supplier.includes('Toàn Sàn') ? 'Toàn Sàn' : 'Danh Mục Cụ Thể';
-                            
-                            return {
-                                supplier: supplier,
-                                supplierLogo: supplierLogo,
-                                discountPercent: discountPercent,
-                                minimumOrder: minimumOrder,
-                                expiryDate: expiryDate,
-                                note: note,
-                                applyLink: applyLink,
-                                bannerLink: bannerLink,
-                                category: category,
-                                isPercentDiscount: isPercentDiscount,
-                                discountValue: discountValue,
-                                couponCode: couponCode
-                            };
-                        }", element);
-                        
-                        // Add to the list for database saving
-                        extractedCoupons.Add(coupon);
-                        
-                        // Print formatted coupon data
-                        Console.WriteLine($"========== COUPON #{i + 1} ==========");
-                        Console.WriteLine($"Supplier:        {coupon.Supplier}");
-                        Console.WriteLine($"Logo:            {coupon.SupplierLogo}");
-                        Console.WriteLine($"Discount:        {coupon.DiscountPercent}");
-                        Console.WriteLine($"Discount Type:   {(coupon.IsPercentDiscount ? "Percent (%)" : "Money (K)")}");
-                        if (coupon.DiscountValue.HasValue)
-                        {
-                            Console.WriteLine($"Discount Value:  {coupon.DiscountValue.Value:N0}");
+                            coupons.push(coupon);
+                        } catch (error) {
+                            console.error('Error parsing coupon:', error);
                         }
-                        if (!string.IsNullOrWhiteSpace(coupon.CouponCode))
-                        {
-                            Console.WriteLine($"Coupon Code:     {coupon.CouponCode}");
-                        }
-                        Console.WriteLine($"Min Order:       {coupon.MinimumOrder}");
-                        Console.WriteLine($"Expiry Date:     {coupon.ExpiryDate}");
-                        Console.WriteLine($"Category:        {coupon.Category}");
-                        
-                        if (!string.IsNullOrWhiteSpace(coupon.Note))
-                        {
-                            var notePreview = coupon.Note.Length > 100 
-                                ? coupon.Note.Substring(0, 100) + "..." 
-                                : coupon.Note;
-                            Console.WriteLine($"Note:            {notePreview}");
-                        }
-                        
-                        if (!string.IsNullOrWhiteSpace(coupon.ApplyLink))
-                        {
-                            var linkPreview = coupon.ApplyLink.Length > 80 
-                                ? coupon.ApplyLink.Substring(0, 80) + "..." 
-                                : coupon.ApplyLink;
-                            Console.WriteLine($"Apply Link:      {linkPreview}");
-                        }
-                        
-                        Console.WriteLine();
-                    }
+                    });
                     
-                    // Save coupons to database
-                    Console.WriteLine($"\n=== Saving to Database ===");
+                    return coupons;
+                }");
+
+                Console.WriteLine($"Found {coupons.Count} coupons. Processing...");
+
+                int savedCount = 0;
+                int skippedCount = 0;
+
+                foreach (var couponData in coupons)
+                {
                     try
                     {
-                        using var scope = serviceProvider.CreateScope();
-                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        // Parse expired date
+                        DateTime expiredDate = ParseExpiredDate(couponData.ExpiredDate);
                         
-                        // Ensure database is created
-                        await dbContext.Database.EnsureCreatedAsync();
-                        
-                        int newCount = 0;
-                        int updatedCount = 0;
-                        
-                        foreach (var couponData in extractedCoupons)
+                        // Extract origin link
+                        string? originLink = null;
+                        if (!string.IsNullOrEmpty(couponData.UrlApplyList))
                         {
-                            // Check if coupon already exists (match by ApplyLink as unique identifier)
-                            var existingCoupon = await dbContext.Coupons
-                                .FirstOrDefaultAsync(c => c.ApplyLink == couponData.ApplyLink && 
-                                                         !string.IsNullOrEmpty(couponData.ApplyLink));
-                            
-                            if (existingCoupon != null)
-                            {
-                                // Update existing coupon
-                                existingCoupon.Supplier = couponData.Supplier;
-                                existingCoupon.SupplierLogo = couponData.SupplierLogo;
-                                existingCoupon.DiscountPercent = couponData.DiscountPercent;
-                                existingCoupon.MinimumOrder = couponData.MinimumOrder;
-                                existingCoupon.Note = couponData.Note;
-                                existingCoupon.BannerLink = couponData.BannerLink;
-                                existingCoupon.Category = couponData.Category;
-                                existingCoupon.IsPercentDiscount = couponData.IsPercentDiscount;
-                                existingCoupon.DiscountValue = couponData.DiscountValue;
-                                existingCoupon.CouponCode = couponData.CouponCode;
-                                
-                                // Parse expiry date if possible
-                                if (!string.IsNullOrWhiteSpace(couponData.ExpiryDate))
-                                {
-                                    existingCoupon.ExpiredDate = ParseVietnameseDate(couponData.ExpiryDate);
-                                }
-                                
-                                updatedCount++;
-                            }
-                            else
-                            {
-                                // Create new coupon
-                                var newCoupon = new Coupon
-                                {
-                                    Platform = 1, // Shopee (from seed data)
-                                    Supplier = couponData.Supplier,
-                                    SupplierLogo = couponData.SupplierLogo,
-                                    DiscountPercent = couponData.DiscountPercent,
-                                    MinimumOrder = couponData.MinimumOrder,
-                                    Note = couponData.Note,
-                                    ApplyLink = couponData.ApplyLink,
-                                    BannerLink = couponData.BannerLink,
-                                    Category = couponData.Category,
-                                    Description = couponData.Note,
-                                    StartDate = DateTime.Now,
-                                    IsPercentDiscount = couponData.IsPercentDiscount,
-                                    DiscountValue = couponData.DiscountValue,
-                                    CouponCode = couponData.CouponCode
-                                };
-                                
-                                // Parse expiry date if possible
-                                if (!string.IsNullOrWhiteSpace(couponData.ExpiryDate))
-                                {
-                                    newCoupon.ExpiredDate = ParseVietnameseDate(couponData.ExpiryDate);
-                                }
-                                
-                                await dbContext.Coupons.AddAsync(newCoupon);
-                                newCount++;
-                            }
+                            originLink = ExtractOriginLink(couponData.UrlApplyList);
                         }
-                        
-                        // Save changes to database
-                        await dbContext.SaveChangesAsync();
-                        
-                        Console.WriteLine($"✓ Database updated successfully!");
-                        Console.WriteLine($"  - New coupons: {newCount}");
-                        Console.WriteLine($"  - Updated coupons: {updatedCount}");
+
+                        // Create coupon entity
+                        var coupon = new Coupon
+                        {
+                            Type = couponData.Type,
+                            Supplier = couponData.Supplier,
+                            Discount = couponData.Discount,
+                            MinValueApply = couponData.MinValueApply,
+                            Description = couponData.Description,
+                            StartDate = DateTime.Now,
+                            Available = couponData.Available,
+                            ExpiredDate = expiredDate,
+                            UrlApplyList = originLink,
+                            Code = null, // Code needs to be extracted via button click
+                            Platform = "shopee"
+                        };
+
+                        // Check if coupon already exists (avoid duplicates)
+                        var exists = await dbContext.Coupons.AnyAsync(c => 
+                            c.Supplier == coupon.Supplier &&
+                            c.Discount == coupon.Discount &&
+                            c.ExpiredDate == coupon.ExpiredDate &&
+                            c.Platform == "shopee"
+                        );
+
+                        if (!exists)
+                        {
+                            dbContext.Coupons.Add(coupon);
+                            savedCount++;
+                        }
+                        else
+                        {
+                            skippedCount++;
+                        }
                     }
-                    catch (Exception dbEx)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"✗ Database error: {dbEx.Message}");
-                        Console.WriteLine($"  Stack trace: {dbEx.StackTrace}");
+                        Console.WriteLine($"Error processing coupon: {ex.Message}");
+                    }
+                }
+
+                // Save to database
+                if (savedCount > 0)
+                {
+                    await dbContext.SaveChangesAsync();
+                    Console.WriteLine($"Successfully saved {savedCount} new coupons to database.");
+                }
+                
+                if (skippedCount > 0)
+                {
+                    Console.WriteLine($"Skipped {skippedCount} duplicate coupons.");
+                }
+
+                Console.WriteLine("=== Crawling Completed Successfully ===");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            }
+        }
+
+        static async Task AutoScroll(IPage page)
+        {
+            await page.EvaluateFunctionAsync(@"async () => {
+                await new Promise((resolve) => {
+                    let totalHeight = 0;
+                    const distance = 100;
+                    const timer = setInterval(() => {
+                        const scrollHeight = document.body.scrollHeight;
+                        window.scrollBy(0, distance);
+                        totalHeight += distance;
+
+                        if (totalHeight >= scrollHeight) {
+                            clearInterval(timer);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }");
+            await Task.Delay(1000);
+        }
+
+        static async Task ClosePopupIfExists(IPage page)
+        {
+            try
+            {
+                // Wait 5 seconds for popup to appear
+                Console.WriteLine("Waiting for popup to appear (5 seconds)...");
+                await Task.Delay(5000);
+                
+                Console.WriteLine("Checking for popup...");
+                
+                // Check if popup wrapper exists - Element-UI dialog structure
+                var popupWrapper = await page.QuerySelectorAsync(".el-dialog__wrapper");
+                
+                if (popupWrapper == null)
+                {
+                    Console.WriteLine("No popup detected.");
+                    return;
+                }
+                
+                Console.WriteLine("Popup detected! Attempting to close...");
+                
+                // Method 1: Click the X icon button in the image area (most reliable based on HTML)
+                var closeIconInImage = await page.QuerySelectorAsync("i.el-icon-close.absolute.text-white");
+                if (closeIconInImage != null)
+                {
+                    await closeIconInImage.ClickAsync();
+                    Console.WriteLine("Popup closed via X icon in image area.");
+                    await Task.Delay(500);
+                    return;
+                }
+                
+                // Method 2: Click the dialog header close button
+                var headerCloseButton = await page.QuerySelectorAsync(".el-dialog__headerbtn");
+                if (headerCloseButton != null)
+                {
+                    await headerCloseButton.ClickAsync();
+                    Console.WriteLine("Popup closed via dialog header close button.");
+                    await Task.Delay(500);
+                    return;
+                }
+                
+                // Method 3: Click the close icon in header
+                var closeIcon = await page.QuerySelectorAsync(".el-dialog__close.el-icon-close");
+                if (closeIcon != null)
+                {
+                    await closeIcon.ClickAsync();
+                    Console.WriteLine("Popup closed via header close icon.");
+                    await Task.Delay(500);
+                    return;
+                }
+                
+                // Method 4: Click outside the popup dialog (on the wrapper)
+                // Get the dialog position and click outside it
+                var clickedOutside = await page.EvaluateFunctionAsync<bool>(@"() => {
+                    const wrapper = document.querySelector('.el-dialog__wrapper');
+                    const dialog = document.querySelector('.el-dialog');
+                    if (wrapper && dialog) {
+                        // Click on the wrapper (dark overlay) outside the dialog
+                        const rect = dialog.getBoundingClientRect();
+                        // Click at top-left corner of viewport (outside dialog)
+                        wrapper.click();
+                        return true;
+                    }
+                    return false;
+                }");
+                
+                if (clickedOutside)
+                {
+                    Console.WriteLine("Popup closed by clicking outside dialog.");
+                    await Task.Delay(500);
+                    return;
+                }
+                
+                // Method 5: Hide via JavaScript as last resort
+                var hidden = await page.EvaluateFunctionAsync<bool>(@"() => {
+                    const wrapper = document.querySelector('.el-dialog__wrapper');
+                    if (wrapper) {
+                        wrapper.style.display = 'none';
+                        return true;
+                    }
+                    return false;
+                }");
+                
+                if (hidden)
+                {
+                    Console.WriteLine("Popup hidden via JavaScript.");
+                    await Task.Delay(500);
+                    return;
+                }
+                
+                Console.WriteLine("Could not close popup with any method.");
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while trying to close popup: {ex.Message}");
+            }
+        }
+
+        static async Task ClickSeeMoreButton(IPage page)
+        {
+            int loadMoreClicked = 0;
+            int maxClicks = 50; // Safety limit to prevent infinite loop
+            
+            while (loadMoreClicked < maxClicks)
+            {
+                try
+                {
+                    // Close popup if it appears before clicking
+                    await ClosePopupIfExists(page);
+                    
+                    // Find the "Xem thêm Voucher" button - try multiple selectors
+                    var seeMoreButton = await page.QuerySelectorAsync(".see-more, [class*='see-more']");
+                    
+                    if (seeMoreButton == null)
+                    {
+                        Console.WriteLine($"No more 'Xem thêm Voucher' button found. Total clicks: {loadMoreClicked}");
+                        break;
                     }
                     
-                    Console.WriteLine($"\n=== Summary ===");
-                    Console.WriteLine($"✓ Successfully extracted {sampleCount} coupon(s)");
-                    Console.WriteLine($"✓ Total coupons found: {elementCount}");
-                    Console.WriteLine($"✓ Selector used: '{foundSelector}'");
+                    // Check if button is visible
+                    var isVisible = await page.EvaluateFunctionAsync<bool>(@"el => {
+                        const style = window.getComputedStyle(el);
+                        const rect = el.getBoundingClientRect();
+                        return style.display !== 'none' && 
+                               style.visibility !== 'hidden' && 
+                               rect.width > 0 && 
+                               rect.height > 0;
+                    }", seeMoreButton);
                     
-                    Console.WriteLine($"\n=== Data Structure ===");
-                    Console.WriteLine($"Each coupon contains:");
-                    Console.WriteLine($"  - Supplier (e.g., 'Toàn Sàn', category name)");
-                    Console.WriteLine($"  - Supplier Logo URL");
-                    Console.WriteLine($"  - Discount Percentage");
-                    Console.WriteLine($"  - Minimum Order Value");
-                    Console.WriteLine($"  - Expiry Date (HSD)");
-                    Console.WriteLine($"  - Note/Description");
-                    Console.WriteLine($"  - Apply Link (List áp dụng)");
-                    Console.WriteLine($"  - Banner Link");
-                    Console.WriteLine($"  - Category");
+                    if (!isVisible)
+                    {
+                        Console.WriteLine($"'Xem thêm Voucher' button not visible. Total clicks: {loadMoreClicked}");
+                        break;
+                    }
                     
-                    // Save screenshot
-                    var screenshotPath = "coupons_crawled.png";
-                    await page.ScreenshotAsync(screenshotPath, new ScreenshotOptions { FullPage = true });
-                    Console.WriteLine($"\nScreenshot saved to: {screenshotPath}");
+                    // Scroll to button and click
+                    await page.EvaluateFunctionAsync("el => el.scrollIntoView({behavior: 'smooth', block: 'center'})", seeMoreButton);
+                    await Task.Delay(500);
+                    
+                    await seeMoreButton.ClickAsync();
+                    loadMoreClicked++;
+                    Console.WriteLine($"Clicked 'Xem thêm Voucher' button ({loadMoreClicked} time(s))");
+                    
+                    // Wait for new content to load
+                    await Task.Delay(2000);
+                    
+                    // Scroll down again to trigger lazy loading
+                    await page.EvaluateExpressionAsync("window.scrollTo(0, document.body.scrollHeight)");
+                    await Task.Delay(1000);
                 }
-                else
+                catch (Exception)
                 {
-                    Console.WriteLine($"Status: Cannot crawl data ✗");
-                    Console.WriteLine($"No matching elements found");
-                    Console.WriteLine($"Tried selectors: {string.Join(", ", possibleSelectors)}");
-                    Console.WriteLine($"\n=== Suggestion ===");
-                    Console.WriteLine($"Inspect the page HTML to find the correct selectors.");
-                    
-                    // Save a screenshot for inspection
-                    var screenshotPath = "page_screenshot.png";
-                    await page.ScreenshotAsync(screenshotPath);
-                    Console.WriteLine($"Screenshot saved to: {screenshotPath}");
-                    
-                    // Also save HTML for inspection
-                    var htmlPath = "page_content.html";
-                    await File.WriteAllTextAsync(htmlPath, content);
-                    Console.WriteLine($"HTML content saved to: {htmlPath}");
+                    Console.WriteLine($"No more coupons to load. Total clicks: {loadMoreClicked}");
+                    break;
+                }
+            }
+            
+            if (loadMoreClicked >= maxClicks)
+            {
+                Console.WriteLine($"Reached maximum click limit ({maxClicks}). Proceeding with extraction...");
+            }
+            
+            Console.WriteLine($"Finished loading coupons (clicked load more {loadMoreClicked} time(s))");
+            
+            // Final scroll to ensure all content is loaded
+            await page.EvaluateExpressionAsync("window.scrollTo(0, document.body.scrollHeight)");
+            await Task.Delay(2000);
+        }
+
+        static string? ExtractOriginLink(string url)
+        {
+            try
+            {
+                Uri uri = new Uri(url);
+                var queryParams = HttpUtility.ParseQueryString(uri.Query);
+                string? originLink = queryParams["origin_link"];
+                if (!string.IsNullOrEmpty(originLink))
+                {
+                    return HttpUtility.UrlDecode(originLink);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Cannot crawl data: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine($"Error extracting origin link: {ex.Message}");
             }
+            return null;
         }
 
-        /// <summary>
-        /// Parse Vietnamese date format (e.g., "31/12/2024" or "31-12-2024")
-        /// </summary>
-        private static DateTime? ParseVietnameseDate(string dateString)
+        static DateTime ParseExpiredDate(string? dateString)
         {
-            if (string.IsNullOrWhiteSpace(dateString))
-                return null;
+            if (string.IsNullOrEmpty(dateString))
+            {
+                return DateTime.Now.AddMonths(1); // Default 1 month from now
+            }
 
             try
             {
-                // Try common Vietnamese date formats
-                string[] formats = {
-                    "dd/MM/yyyy",
-                    "dd-MM-yyyy",
-                    "dd/MM/yyyy HH:mm",
-                    "dd-MM-yyyy HH:mm",
-                    "dd/MM/yyyy HH:mm:ss",
-                    "dd-MM-yyyy HH:mm:ss"
-                };
-
-                if (DateTime.TryParseExact(dateString.Trim(), formats, 
-                    System.Globalization.CultureInfo.InvariantCulture, 
-                    System.Globalization.DateTimeStyles.None, out var result))
+                // Expected format: dd/MM
+                var parts = dateString.Trim().Split('/');
+                if (parts.Length == 2)
                 {
-                    return result;
-                }
+                    int day = int.Parse(parts[0]);
+                    int month = int.Parse(parts[1]);
+                    int year = DateTime.Now.Year;
 
-                // If exact parsing fails, try general parsing
-                if (DateTime.TryParse(dateString, out var generalResult))
-                {
-                    return generalResult;
-                }
+                    // If the date has passed this year, assume next year
+                    var date = new DateTime(year, month, day);
+                    if (date < DateTime.Now)
+                    {
+                        date = new DateTime(year + 1, month, day);
+                    }
 
-                return null;
+                    return date;
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                Console.WriteLine($"Error parsing date '{dateString}': {ex.Message}");
             }
+
+            return DateTime.Now.AddMonths(1);
         }
     }
 
-    /// <summary>
-    /// DTO class for crawled coupon data from the website
-    /// </summary>
+    // DTO class for coupon data from webpage
     public class CouponData
     {
-        public string Supplier { get; set; } = string.Empty;
-        public string SupplierLogo { get; set; } = string.Empty;
-        public string DiscountPercent { get; set; } = string.Empty;
-        public string MinimumOrder { get; set; } = string.Empty;
-        public string ExpiryDate { get; set; } = string.Empty;
-        public string Note { get; set; } = string.Empty;
-        public string ApplyLink { get; set; } = string.Empty;
-        public string BannerLink { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        
-        // New fields for discount type and code
-        public bool IsPercentDiscount { get; set; } // true = %, false = money (K)
-        public double? DiscountValue { get; set; } // Parsed numeric value
-        public string CouponCode { get; set; } = string.Empty; // For money discounts
+        public bool Type { get; set; }
+        public string? Supplier { get; set; }
+        public double Discount { get; set; }
+        public double? MinValueApply { get; set; }
+        public double? Available { get; set; }
+        public string? Description { get; set; }
+        public string? ExpiredDate { get; set; }
+        public string? UrlApplyList { get; set; }
     }
 }

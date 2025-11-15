@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CrawlData.Data.Models
+namespace CrawlData.Models
 {
     [Table("user")]
     public class User
@@ -10,13 +10,13 @@ namespace CrawlData.Data.Models
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("username")]
         [Required]
-        [MaxLength(50)]
+        [Column("username")]
+        [MaxLength(255)]
         public string Username { get; set; } = string.Empty;
 
-        [Column("password")]
         [Required]
+        [Column("password")]
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
 
@@ -24,4 +24,5 @@ namespace CrawlData.Data.Models
         public virtual ICollection<UserCoupon> UserCoupons { get; set; } = new List<UserCoupon>();
     }
 }
+
 
