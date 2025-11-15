@@ -143,3 +143,10 @@ D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVo
 D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\obj\Debug\net8.0\ShopeeVoucherAPI.pdb
 D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\obj\Debug\net8.0\ShopeeVoucherAPI.genruntimeconfig.cache
 D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\obj\Debug\net8.0\ref\ShopeeVoucherAPI.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\bin\Debug\net8.0\Microsoft.AspNetCore.OData.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\bin\Debug\net8.0\Microsoft.OData.Core.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\bin\Debug\net8.0\Microsoft.OData.Edm.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\bin\Debug\net8.0\Microsoft.OData.ModelBuilder.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\bin\Debug\net8.0\Microsoft.Spatial.dll
+D:\FULearning\FALL25\PRN232\shoppe-voucher\ShopeeVoucher_PRN232_Project\ShopeeVoucherAPI\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

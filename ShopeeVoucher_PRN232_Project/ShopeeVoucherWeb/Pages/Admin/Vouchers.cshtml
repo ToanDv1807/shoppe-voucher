@@ -1,0 +1,690 @@
+﻿@page
+@model ShopeeVoucherWeb.Pages.Admin.VouchersModel
+
+@{
+    ViewData["Title"] = "Manage Vouchers";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .header-content h1 { font-size: 32px; color: #1f2937; margin-bottom: 5px; }
+        .subtitle { color: #6b7280; font-size: 14px; }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+
+        .menu-link:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-container { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 15px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        tr:hover { background: #f9fafb; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-toggle {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-toggle:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: #1f2937;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+
+        @@keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .code-display {
+            font-family: 'Courier New', monospace;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>🎟️ Manage Vouchers</h1>
+            <p class="subtitle">Create, edit, and manage promotional vouchers</p>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn-primary" onclick="openCreateModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add New Voucher
+            </button>
+            <a asp-page="/Admin/Index" class="menu-link">
+                ← Dashboard
+            </a>
+        </div>
+    </header>
+
+    <div class="content-card">
+        @if (Model.Vouchers.Any())
+        {
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Code</th>
+                            <th>Discount</th>
+                            <th>Min Order</th>
+                            <th>Expiry</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var voucher in Model.Vouchers)
+                        {
+                            <tr data-voucher-id="@voucher.VoucherId">
+                                <td><strong>#@voucher.VoucherId</strong></td>
+                                <td><strong>@voucher.Title</strong></td>
+                                <td><span class="code-display">@voucher.VoucherCode</span></td>
+                                <td>@voucher.DiscountValue</td>
+                                <td>@(voucher.MinOrder?.ToString("C") ?? "N/A")</td>
+                                <td>@(voucher.ExpiryDate?.ToString("MMM dd, yyyy") ?? "No expiry")</td>
+                                <td>@voucher.CategoryName</td>
+                                <td>
+                                    <span class="status-badge @(voucher.IsActive ? "status-active" : "status-inactive")">
+                                        @if (voucher.IsActive)
+                                        {
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                            </svg>
+                                            <span>Active</span>
+                                        }
+                                        else
+                                        {
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                            </svg>
+                                            <span>Inactive</span>
+                                        }
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-edit" onclick='openEditModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(voucher)))'>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-toggle" onclick="toggleActive(@voucher.VoucherId, @(voucher.IsActive ? "true" : "false"))">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="1 4 1 10 7 10"></polyline>
+                                                <polyline points="23 20 23 14 17 14"></polyline>
+                                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                            </svg>
+                                            @(voucher.IsActive ? "Deactivate" : "Activate")
+                                        </button>
+                                        <button class="btn btn-delete" onclick="deleteVoucher(@voucher.VoucherId, '@voucher.Title')">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="text-align: center; padding: 40px; color: #6b7280;">
+                No vouchers found. Click "Add New Voucher" to create one.
+            </p>
+        }
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="voucherModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Voucher</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <form id="voucherForm">
+                <input type="hidden" id="voucherId" name="voucherId" value="0" />
+
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required maxlength="200" />
+                </div>
+
+                <div class="form-group">
+                    <label for="voucherCode">Voucher Code *</label>
+                    <input type="text" id="voucherCode" name="voucherCode" required maxlength="100" placeholder="e.g., SUMMER2024" />
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" maxlength="1000"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="discountValue">Discount Value</label>
+                    <input type="text" id="discountValue" name="discountValue" maxlength="50" placeholder="e.g., 20%, $10 off" />
+                </div>
+
+                <div class="form-group">
+                    <label for="minOrder">Minimum Order (₫)</label>
+                    <input type="number" id="minOrder" name="minOrder" step="0.01" min="0" />
+                </div>
+
+                <div class="form-group">
+                    <label for="expiryDate">Expiry Date</label>
+                    <input type="datetime-local" id="expiryDate" name="expiryDate" />
+                </div>
+
+                <div class="form-group">
+                    <label for="link">Link (URL)</label>
+                    <input type="url" id="link" name="link" maxlength="500" placeholder="https://example.com" />
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryId">Category *</label>
+                    <select id="categoryId" name="categoryId" required>
+                        <option value="">-- Select Category --</option>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category.CategoryId">@category.CategoryName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Create Voucher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isEditMode = false;
+
+        function openCreateModal() {
+            isEditMode = false;
+            document.getElementById('modalTitle').textContent = 'Add New Voucher';
+            document.getElementById('submitBtn').textContent = 'Create Voucher';
+            document.getElementById('voucherForm').reset();
+            document.getElementById('voucherId').value = '0';
+            document.getElementById('voucherModal').classList.add('active');
+        }
+
+        function openEditModal(voucher) {
+            console.log('=== openEditModal ===');
+            console.log('Voucher object:', voucher);
+
+            isEditMode = true;
+            document.getElementById('modalTitle').textContent = 'Edit Voucher';
+            document.getElementById('submitBtn').textContent = 'Update Voucher';
+
+            // ✅ Fix: Handle both PascalCase and camelCase property names
+            const voucherId = voucher.VoucherId || voucher.voucherId;
+            const title = voucher.Title || voucher.title;
+            const voucherCode = voucher.VoucherCode || voucher.voucherCode;
+            const description = voucher.Description || voucher.description;
+            const discountValue = voucher.DiscountValue || voucher.discountValue;
+            const minOrder = voucher.MinOrder || voucher.minOrder;
+            const link = voucher.Link || voucher.link;
+            const categoryId = voucher.CategoryId || voucher.categoryId;
+            const expiryDate = voucher.ExpiryDate || voucher.expiryDate;
+
+            console.log('Extracted values:');
+            console.log('  voucherId:', voucherId);
+            console.log('  title:', title);
+            console.log('  voucherCode:', voucherCode);
+            console.log('  categoryId:', categoryId);
+
+            // ✅ Set form values
+            document.getElementById('voucherId').value = voucherId || '0';
+            document.getElementById('title').value = title || '';
+            document.getElementById('voucherCode').value = voucherCode || '';
+            document.getElementById('description').value = description || '';
+            document.getElementById('discountValue').value = discountValue || '';
+            document.getElementById('minOrder').value = minOrder || '';
+            document.getElementById('link').value = link || '';
+            document.getElementById('categoryId').value = categoryId || '';
+
+            // ✅ Handle expiry date
+            if (expiryDate) {
+                try {
+                    const date = new Date(expiryDate);
+                    const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                        .toISOString()
+                        .slice(0, 16);
+                    document.getElementById('expiryDate').value = localDateTime;
+                    console.log('  expiryDate:', localDateTime);
+                } catch (e) {
+                    console.error('Error parsing date:', e);
+                    document.getElementById('expiryDate').value = '';
+                }
+            } else {
+                document.getElementById('expiryDate').value = '';
+            }
+
+            document.getElementById('voucherModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('voucherModal').classList.remove('active');
+        }
+
+        document.getElementById('voucherForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                voucherId: parseInt(document.getElementById('voucherId').value),
+                title: document.getElementById('title').value,
+                voucherCode: document.getElementById('voucherCode').value,
+                description: document.getElementById('description').value || null,
+                discountValue: document.getElementById('discountValue').value || null,
+                minOrder: document.getElementById('minOrder').value ? parseFloat(document.getElementById('minOrder').value) : null,
+                expiryDate: document.getElementById('expiryDate').value ? new Date(document.getElementById('expiryDate').value).toISOString() : null,
+                link: document.getElementById('link').value || null,
+                categoryId: parseInt(document.getElementById('categoryId').value)
+            };
+
+            console.log('Submitting form data:', formData);
+
+            const handler = isEditMode ? '?handler=Update' : '?handler=Create';
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(handler, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred', 'error');
+            }
+        });
+
+        async function toggleActive(voucherId, currentStatus) {
+            const action = currentStatus ? 'deactivate' : 'activate';
+
+            if (!confirm(`Are you sure you want to ${action} this voucher?`)) return;
+
+            try {
+                const response = await fetch('?handler=ToggleActive', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(voucherId)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred', 'error');
+            }
+        }
+
+        async function deleteVoucher(voucherId, title) {
+            if (!confirm(`Are you sure you want to delete voucher "${title}"?\n\nThis action cannot be undone.`)) return;
+
+            try {
+                const response = await fetch('?handler=Voucher', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(voucherId)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred', 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${type === 'success' ? '#10b981' : '#ef4444'}" stroke-width="2">
+                    ${type === 'success' 
+                        ? '<path d="M20 6L9 17l-5-5"></path>' 
+                        : '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>'}
+                </svg>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('voucherModal').addEventListener('click', (e) => {
+            if (e.target.id === 'voucherModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

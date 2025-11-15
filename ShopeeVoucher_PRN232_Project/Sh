@@ -1,0 +1,557 @@
+﻿@using ShopeeVoucherWeb.Models
+@model IEnumerable<CouponViewModel>
+
+@{
+    ViewData["Title"] = "Coupon Hub";
+}
+
+<!-- HEADER -->
+<header class="header">
+    <div class="header-content">
+        <h1>🎟️ Coupon Hub</h1>
+        <p class="subtitle">Discover the best deals and vouchers</p>
+    </div>
+
+    <nav class="menu">
+        <a href="/Coupon/Saved" class="menu-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Saved Coupons
+        </a>
+        <a href="/Account/Login" class="menu-link login-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Login
+        </a>
+    </nav>
+</header>
+
+<!-- CATEGORY FILTER -->
+<div class="filter-section">
+    <div class="filter-bar">
+        <a href="#" class="filter active" data-filter="all">All Coupons</a>
+        <a href="#" class="filter shopee" data-filter="shopee">Shopee</a>
+        <a href="#" class="filter lazada" data-filter="lazada">Lazada</a>
+        <a href="#" class="filter tiki" data-filter="tiki">Tiki</a>
+    </div>
+
+    <div class="search-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" class="search-box" placeholder="Search coupons..." id="searchInput" />
+    </div>
+</div>
+
+<!-- VOUCHER LIST -->
+<div class="voucher-container" id="voucherContainer">
+    @foreach (var v in Model)
+    {
+        <div class="voucher-card" data-category="@v.Title.ToLower()">
+            <div class="voucher-left">
+                <div class="logo" style="background:@v.Color">
+                    <span class="logo-text">@v.Title.Substring(0, 1)</span>
+                </div>
+            </div>
+
+            <div class="voucher-middle">
+                <div class="voucher-info">
+                    <h3 class="voucher-title">@v.Title</h3>
+                    <p class="voucher-description">@v.Description</p>
+                    <div class="voucher-meta">
+                        <span class="code-display">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="7" width="18" height="13" rx="2"></rect>
+                                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            Code: <strong>@v.Code</strong>
+                        </span>
+                        <span class="expire-date">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Expires: @v.ExpiredDate.ToString("MMM dd, yyyy")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="voucher-actions">
+                <button class="action-btn copy-btn" onclick="copyCode('@v.Code', this)" title="Copy code">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                </button>
+                <a class="action-btn goto-btn" href="@v.Link" target="_blank" title="Visit store">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                    Visit
+                </a>
+                <button class="action-btn save-btn" onclick="saveCoupon(this)" title="Save coupon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Save
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="toast"></div>
+
+<!-- ======================= JAVASCRIPT ======================= -->
+<script>
+    // Copy code function with toast notification
+    function copyCode(code, btn) {
+        navigator.clipboard.writeText(code).then(() => {
+            showToast(`✓ Code "${code}" copied to clipboard!`, 'success');
+            
+            // Visual feedback on button
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+            btn.style.background = '#10b981';
+            btn.style.color = 'white';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2000);
+        }).catch(() => {
+            showToast('Failed to copy code', 'error');
+        });
+    }
+
+    // Save coupon function
+    function saveCoupon(btn) {
+        const isSaved = btn.classList.toggle('saved');
+        
+        if (isSaved) {
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Saved';
+            showToast('✓ Coupon saved successfully!', 'success');
+        } else {
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Save';
+            showToast('Coupon removed from saved', 'info');
+        }
+    }
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type} show`;
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const vouchers = document.querySelectorAll('.voucher-card');
+        
+        vouchers.forEach(voucher => {
+            const text = voucher.textContent.toLowerCase();
+            voucher.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+
+    // Filter functionality
+    document.querySelectorAll('.filter').forEach(filter => {
+        filter.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active state
+            document.querySelectorAll('.filter').forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filterValue = this.dataset.filter;
+            const vouchers = document.querySelectorAll('.voucher-card');
+            
+            vouchers.forEach(voucher => {
+                if (filterValue === 'all') {
+                    voucher.style.display = '';
+                } else {
+                    const category = voucher.dataset.category;
+                    voucher.style.display = category.includes(filterValue) ? '' : 'none';
+                }
+            });
+        });
+    });
+</script>
+
+<!-- ======================= CSS ======================= -->
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    /* Header Styles */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 25px 30px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+
+    .header-content h1 {
+        font-size: 32px;
+        color: #1f2937;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .menu {
+        display: flex;
+        gap: 15px;
+    }
+
+    .menu-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        color: #374151;
+        background: #f3f4f6;
+        transition: all 0.3s ease;
+    }
+
+    .menu-link:hover {
+        background: #e5e7eb;
+        transform: translateY(-2px);
+    }
+
+    .login-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .login-btn:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
+    }
+
+    /* Filter Section */
+    .filter-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .filter {
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .filter.active {
+        background: #10b981;
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .filter.shopee {
+        background: #ee4d2d;
+        color: white;
+    }
+
+    .filter.shopee:hover {
+        box-shadow: 0 4px 12px rgba(238, 77, 45, 0.4);
+    }
+
+    .filter.lazada {
+        background: #0f1cae;
+        color: white;
+    }
+
+    .filter.lazada:hover {
+        box-shadow: 0 4px 12px rgba(15, 28, 174, 0.4);
+    }
+
+    .filter.tiki {
+        background: #1a94ff;
+        color: white;
+    }
+
+    .filter.tiki:hover {
+        box-shadow: 0 4px 12px rgba(26, 148, 255, 0.4);
+    }
+
+    .search-wrapper {
+        position: relative;
+        flex: 0 1 300px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+    }
+
+    .search-box {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border: 2px solid #e5e7eb;
+        border-radius: 25px;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Voucher Container */
+    .voucher-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .voucher-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .voucher-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .voucher-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .voucher-left {
+        flex-shrink: 0;
+    }
+
+    .logo {
+        width: 70px;
+        height: 70px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-text {
+        font-size: 32px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .voucher-middle {
+        flex: 1;
+    }
+
+    .voucher-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .voucher-description {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 12px;
+    }
+
+    .voucher-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .voucher-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #4b5563;
+    }
+
+    .code-display strong {
+        color: #667eea;
+        font-family: 'Courier New', monospace;
+    }
+
+    .voucher-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #374151;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .copy-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .goto-btn:hover {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
+    .save-btn.saved {
+        background: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+
+    /* Toast Notification */
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        padding: 16px 24px;
+        background: #1f2937;
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateY(100px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        font-weight: 600;
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .toast.success {
+        background: #10b981;
+    }
+
+    .toast.error {
+        background: #ef4444;
+    }
+
+    .toast.info {
+        background: #3b82f6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .voucher-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .voucher-actions {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .header {
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+        }
+
+        .filter-section {
+            flex-direction: column;
+        }
+
+        .search-wrapper {
+            width: 100%;
+        }
+
+        .voucher-meta {
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+</style>

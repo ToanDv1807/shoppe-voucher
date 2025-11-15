@@ -15,10 +15,6 @@ public partial class ShopeeVoucherDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Blog> Blogs { get; set; }
-
-    public virtual DbSet<BlogCategory> BlogCategories { get; set; }
-
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<SavedVoucher> SavedVouchers { get; set; }
@@ -35,41 +31,6 @@ public partial class ShopeeVoucherDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Blog>(entity =>
-        {
-            entity.HasKey(e => e.BlogId).HasName("PK__Blog__54379E30F95F4108");
-
-            entity.ToTable("Blog");
-
-            entity.HasIndex(e => e.Slug, "UQ__Blog__BC7B5FB6DA17FF6C").IsUnique();
-
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Slug).HasMaxLength(200);
-            entity.Property(e => e.Thumbnail).HasMaxLength(500);
-            entity.Property(e => e.Title).HasMaxLength(200);
-
-            entity.HasOne(d => d.Author).WithMany(p => p.Blogs)
-                .HasForeignKey(d => d.AuthorId)
-                .HasConstraintName("FK__Blog__AuthorId__52593CB8");
-
-            entity.HasOne(d => d.Category).WithMany(p => p.Blogs)
-                .HasForeignKey(d => d.CategoryId)
-                .HasConstraintName("FK__Blog__CategoryId__534D60F1");
-        });
-
-        modelBuilder.Entity<BlogCategory>(entity =>
-        {
-            entity.HasKey(e => e.BlogCategoryId).HasName("PK__BlogCate__6BD2DA0123245764");
-
-            entity.ToTable("BlogCategory");
-
-            entity.HasIndex(e => e.CategoryName, "UQ__BlogCate__8517B2E01B2AA3DC").IsUnique();
-
-            entity.Property(e => e.CategoryName).HasMaxLength(150);
-        });
-
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1AD84D2E1D");
