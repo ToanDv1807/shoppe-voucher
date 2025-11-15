@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShopeeVoucherWeb")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+113ad37f1dfdf02613fb315d1262cbd3b548e8b3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8548246f0b4955df0b4cd14ddd45372097bf6f5f")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShopeeVoucherWeb")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShopeeVoucherWeb")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
